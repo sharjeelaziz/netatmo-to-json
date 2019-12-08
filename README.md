@@ -2,7 +2,7 @@
 
 This project writes data from your Netatmo weather station to a JSON file that can be read by PyMultimonAPRS https://asdil12.github.io/pymultimonaprs
 
-###Getting Started
+### Getting Started
 Get credentials from https://dev.netatmo.com/myaccount/createanapp and update the ```set_env.sh``` file with your credentials.
 
 ```
