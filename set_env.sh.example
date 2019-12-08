@@ -1,0 +1,6 @@
+#!/usr/bin/zsh
+
+export NETATMO_CLIENT_ID=""
+export NETATMO_CLIENT_SECRET=""
+export NETATMO_USERNAME=""
+export NETATMO_PASSWORD=""

@@ -1,0 +1,10 @@
+{
+    "timestamp": 1575840001,
+    "pressure": 1025.8,
+    "temperature": 6.7,
+    "humidity": 67,
+    "rain": {
+        "rainlast1h": 0,
+        "rainlast24h": 0
+    }
+}
