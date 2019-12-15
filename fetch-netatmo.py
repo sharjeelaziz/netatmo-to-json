@@ -6,13 +6,15 @@ import time
 import requests
 
 
-def get_token(my_data):
-
+def get_token(payload):
     try:
-        resp = requests.post('https://api.netatmo.com/oauth2/token', data=my_data)
+        resp = requests.post('https://api.netatmo.com/oauth2/token', data=payload)
         if resp.status_code == 200:
             token = resp.json()
             token['expiry'] = int(time.time()) + token['expires_in']
+        else:
+            token = None
+            print("get_token failed! are the environment variable set?")
     except requests.exceptions.ProxyError as error:
         print("Proxy error", error.response)
     except requests.exceptions.RequestException as error:
@@ -21,7 +23,6 @@ def get_token(my_data):
 
 
 def update_file(token):
-
     # Check if token needs refresh
     if token['expiry'] - int(time.time()) < 600:
         try:
@@ -45,53 +46,64 @@ def update_file(token):
             rain = {}
 
             for device in data['body']['devices']:
+
                 weather['timestamp'] = device['dashboard_data']['time_utc']
                 weather['pressure'] = device['dashboard_data']['Pressure']
 
                 for module in device['modules']:
                     module_type = module['type']
+                    module_dashboard = module['dashboard_data']
 
                     if module_type == 'NAModule1':  # Outdoor
-                        weather['temperature'] = module['dashboard_data']['Temperature']
-                        weather['humidity'] = module['dashboard_data']['Humidity']
+                        weather['temperature'] = module_dashboard['Temperature']
+                        weather['humidity'] = module_dashboard['Humidity']
 
                     if module_type == 'NAModule3':  # Rain
-                        rain['rainlast1h'] = module['dashboard_data']['sum_rain_1']
-                        rain['rainlast24h'] = module['dashboard_data']['sum_rain_24']
+                        if 'sum_rain_1' in module_dashboard:
+                            rain['rainlast1h'] = module_dashboard['sum_rain_1']
+                        if 'sum_rain_24' in module_dashboard:
+                            rain['rainlast24h'] = module_dashboard['sum_rain_24']
                         weather['rain'] = rain
 
                     if module_type == 'NAModule2':  # Wind
-                        wind['speed'] = module['dashboard_data']['WindStrength']
-                        wind['direction'] = module['dashboard_data']['WindAngle']
-                        wind['gust'] = module['dashboard_data']['GustStrength']
+                        wind['speed'] = module_dashboard['WindStrength']
+                        wind['direction'] = module_dashboard['WindAngle']
+                        wind['gust'] = module_dashboard['GustStrength']
                         weather['wind'] = wind
+
+            base_path = os.path.dirname(os.path.realpath(__file__))
+            filename = os.path.join(base_path, 'weather.json')
             json_file = json.dumps(weather, indent=4)
             print(json_file)
 
-            weather_file = open("weather.json", "w")
+            weather_file = open(filename, "w")
             weather_file.write(json_file)
             weather_file.close()
 
     except requests.exceptions.HTTPError as error:
         print(error.response.status_code, error.response.text)
+    except KeyError as error:
+        print("error.message")
 
 
 def main():
-
     # https://dev.netatmo.com/
     NETATMO_CLIENT_ID = os.getenv('NETATMO_CLIENT_ID')
     NETATMO_CLIENT_SECRET = os.getenv('NETATMO_CLIENT_SECRET')
     NETATMO_USERNAME = os.getenv('NETATMO_USERNAME')
     NETATMO_PASSWORD = os.getenv('NETATMO_PASSWORD')
 
-    data = dict(grant_type='password', client_id=NETATMO_CLIENT_ID,
+    payload = dict(grant_type='password', client_id=NETATMO_CLIENT_ID,
                 client_secret=NETATMO_CLIENT_SECRET, username=NETATMO_USERNAME,
                 password=NETATMO_PASSWORD, scope='read_station')
 
-    while True:
-        token = get_token(data)
-        update_file(token)
+    token = get_token(payload)
 
+    while True:
+        if token is not None and 'expiry' in token:
+            update_file(token)
+        else:
+            token = get_token(payload)
         time.sleep(480)
 
 

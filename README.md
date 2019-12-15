@@ -49,3 +49,15 @@ Legend
 
 The timestamp must be included - everything else is optional.
 
+#### systemd
+
+1. Copy ```netatmno-to-json.service``` file to ```/lib/systemd/system/```. Update the environment variables in the ```netatmo-to-json.environment``` file.
+2. Change the service file permissions to 644.
+    ```   
+    sudo chmod 644 /lib/systemd/system/netatmo-to-json.service
+    ```
+3. Tell systemd to start it during the boot sequence :
+```
+sudo systemctl daemon-reload
+sudo systemctl enable netatmno-to-json.service
+```

@@ -1,0 +1,11 @@
+[Unit]
+Description=fetch netatmo
+After=network.target
+
+[Service]
+EnvironmentFile=/home/pi/netatmo-to-json/netatmo-to-json.environment
+ExecStart=
+ExecStart=/usr/bin/python3 /home/pi/netatmo-to-json/fetch-netatmo.py  > /home/pi/netatmo-to-json/fetch-netatmo.log 2>&1
+
+[Install]
+WantedBy=multi-user.target
