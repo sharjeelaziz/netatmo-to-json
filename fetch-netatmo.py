@@ -3,6 +3,7 @@ import os
 import sys
 import json
 import time
+
 import requests
 
 
@@ -75,7 +76,6 @@ def update_file(token, netatmo_client_id, netatmo_client_secret):
             base_path = os.path.dirname(os.path.realpath(__file__))
             filename = os.path.join(base_path, 'weather.json')
             json_file = json.dumps(weather, indent=4)
-            print(json_file)
 
             weather_file = open(filename, "w")
             weather_file.write(json_file)
@@ -85,6 +85,7 @@ def update_file(token, netatmo_client_id, netatmo_client_secret):
         print(error.response.status_code, error.response.text)
     except KeyError as error:
         print('error.message')
+    return token
 
 
 def main():
@@ -95,14 +96,14 @@ def main():
     netatmo_password = os.getenv('NETATMO_PASSWORD')
 
     payload = dict(grant_type='password', client_id=netatmo_client_id,
-                client_secret=netatmo_client_secret, username=netatmo_username,
-                password=netatmo_password, scope='read_station')
+                   client_secret=netatmo_client_secret, username=netatmo_username,
+                   password=netatmo_password, scope='read_station')
 
     token = get_token(payload)
 
     while True:
         if token is not None and 'expiry' in token:
-            update_file(token, netatmo_client_id, netatmo_client_secret)
+            token = update_file(token, netatmo_client_id, netatmo_client_secret)
         else:
             token = get_token(payload)
         time.sleep(480)
