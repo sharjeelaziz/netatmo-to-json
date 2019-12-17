@@ -1,15 +1,15 @@
 {
-    "timestamp": 1576372237,
-    "pressure": 998.1,
-    "temperature": 7.2,
-    "humidity": 76,
+    "timestamp": 1576460750,
+    "pressure": 1019.3,
+    "temperature": 2.6,
+    "humidity": 66,
     "rain": {
         "rainlast1h": 0,
-        "rainlast24h": 3.9
+        "rainlast24h": 0
     },
     "wind": {
-        "speed": 4,
-        "direction": 322,
-        "gust": 16
+        "speed": 1,
+        "direction": -1,
+        "gust": 4
     }
 }

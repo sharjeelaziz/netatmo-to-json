@@ -14,28 +14,29 @@ def get_token(payload):
             token['expiry'] = int(time.time()) + token['expires_in']
         else:
             token = None
-            print("get_token failed! are the environment variable set?")
+            print('get_token failed! are the environment variable set?')
     except requests.exceptions.ProxyError as error:
-        print("Proxy error", error.response)
+        print('Proxy error', error.response)
     except requests.exceptions.RequestException as error:
-        print("Request error: ", error.response)
+        print('Request error: ', error.response)
     return token
 
 
-def update_file(token):
+def update_file(token, netatmo_client_id, netatmo_client_secret):
     # Check if token needs refresh
     if token['expiry'] - int(time.time()) < 600:
         try:
-            data = dict(grant_type='refresh_token', refresh_token=token['refresh_token'], client_id=NETATMO_CLIENT_ID,
-                        client_secret=NETATMO_CLIENT_SECRET)
+            data = dict(grant_type='refresh_token', refresh_token=token['refresh_token'], client_id=netatmo_client_id,
+                        client_secret=netatmo_client_secret)
             resp = requests.post('https://api.netatmo.com/oauth2/token', data=data)
             if resp.status_code == 200:
                 token = resp.json()
                 token['expiry'] = int(time.time()) + token['expires_in']
         except requests.exceptions.ProxyError as error:
-            print("Proxy error", error.response)
+            print('Proxy error', error.response)
         except requests.exceptions.RequestException as error:
-            print("Request error: ", error.response)
+            print('Request error: ', error.response)
+        print('refreshing token!')
 
     try:
         resp = requests.get('https://api.netatmo.com/api/getstationsdata?access_token=' + token['access_token'])
@@ -83,29 +84,29 @@ def update_file(token):
     except requests.exceptions.HTTPError as error:
         print(error.response.status_code, error.response.text)
     except KeyError as error:
-        print("error.message")
+        print('error.message')
 
 
 def main():
     # https://dev.netatmo.com/
-    NETATMO_CLIENT_ID = os.getenv('NETATMO_CLIENT_ID')
-    NETATMO_CLIENT_SECRET = os.getenv('NETATMO_CLIENT_SECRET')
-    NETATMO_USERNAME = os.getenv('NETATMO_USERNAME')
-    NETATMO_PASSWORD = os.getenv('NETATMO_PASSWORD')
+    netatmo_client_id = os.getenv('NETATMO_CLIENT_ID')
+    netatmo_client_secret = os.getenv('NETATMO_CLIENT_SECRET')
+    netatmo_username = os.getenv('NETATMO_USERNAME')
+    netatmo_password = os.getenv('NETATMO_PASSWORD')
 
-    payload = dict(grant_type='password', client_id=NETATMO_CLIENT_ID,
-                client_secret=NETATMO_CLIENT_SECRET, username=NETATMO_USERNAME,
-                password=NETATMO_PASSWORD, scope='read_station')
+    payload = dict(grant_type='password', client_id=netatmo_client_id,
+                client_secret=netatmo_client_secret, username=netatmo_username,
+                password=netatmo_password, scope='read_station')
 
     token = get_token(payload)
 
     while True:
         if token is not None and 'expiry' in token:
-            update_file(token)
+            update_file(token, netatmo_client_id, netatmo_client_secret)
         else:
             token = get_token(payload)
         time.sleep(480)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
